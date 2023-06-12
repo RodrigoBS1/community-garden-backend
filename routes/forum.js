@@ -23,14 +23,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get a specific article by name
-router.get('/:article', async (req, res) => {
+// Get a specific article by ID
+router.get('/:id', async (req, res) => {
   try {
-    const article = await Forum.findOne({
-      where: {
-        article: req.params.article
-      }
-    });
+    const article = await Forum.findByPk(req.params.id);
 
     if (!article) {
       res.status(404).json({ message: "Article not found." });
@@ -81,25 +77,19 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-//Post comments, like and dislike
-
+// Increment likes count for an article
 router.post('/:id/like', async (req, res) => {
   const articleId = req.params.id;
 
   try {
-    // Find the article in the database by ID
     const article = await Forum.findByPk(articleId);
     if (!article) {
       return res.status(404).json({ error: 'Article not found' });
     }
 
-    // Increment the likes count
     article.likes += 1;
-
-    // Save the updated article
     await article.save();
 
-    // Send a response back to the client
     res.status(200).json({ message: 'Article liked successfully' });
   } catch (error) {
     console.error('Error liking article:', error);
@@ -107,24 +97,19 @@ router.post('/:id/like', async (req, res) => {
   }
 });
 
-// Handle POST request for disliking an article
+// Increment dislikes count for an article
 router.post('/:id/dislike', async (req, res) => {
   const articleId = req.params.id;
 
   try {
-    // Find the article in the database by ID
     const article = await Forum.findByPk(articleId);
     if (!article) {
       return res.status(404).json({ error: 'Article not found' });
     }
 
-    // Increment the dislikes count
     article.dislikes += 1;
-
-    // Save the updated article
     await article.save();
 
-    // Send a response back to the client
     res.status(200).json({ message: 'Article disliked successfully' });
   } catch (error) {
     console.error('Error disliking article:', error);
@@ -132,29 +117,27 @@ router.post('/:id/dislike', async (req, res) => {
   }
 });
 
+// Add a comment to an article
 router.post('/:id/comment', async (req, res) => {
   const articleId = req.params.id;
   const { comment } = req.body;
 
   try {
-    // Find the article in the database by ID
     const article = await Forum.findByPk(articleId);
     if (!article) {
       return res.status(404).json({ error: 'Article not found' });
     }
 
-    // Add the comment to the article
+    article.comments = article.comments || []; // Ensure the comments array exists
     article.comments.push(comment);
-
-    // Save the updated article
     await article.save();
 
-    // Send a response back to the client
     res.status(200).json({ message: 'Comment added successfully' });
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 module.exports = router;
